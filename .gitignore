@@ -1,0 +1,51 @@
+# ── 运行时数据：整个 data/ 都不进版本库 ──
+# 里面是真实聊天记录、群友记忆、会话留档、表情库，
+# 以及**含 API Key 的 config.json**。
+data/
+data-*/
+plugin-data/
+
+# 多实例的其它数据目录
+*-data/
+
+# 第三方协议端（自带 EULA，请自行下载）
+snowluma/
+
+# 便携运行时（setup 脚本下载/安装）
+runtime/
+
+# 日志与临时文件
+*.log
+logs/
+*.tmp
+*.bak
+*.bak-*
+.trash/
+
+# 社区管理密钥与本地环境变量
+community.key
+.env
+.env.local
+
+# 依赖
+node_modules/
+
+# 打包产物
+dist/
+release/
+*.exe
+*.msi
+
+# 编辑器 / 系统文件
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# AI 协作过程稿
+findings.md
+progress.md
+task_plan.md
+.goal-baseline/

@@ -1,0 +1,74 @@
+{
+  "id": "realistic-hobby",
+  "name": "拟真爱好",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "knowledge",
+  "description": "让机器人自己找兴趣爱好，空闲时像真人一样由浅入深地学某个领域的知识，每隔约 4 小时向指定的人分享近况或提出它不懂的问题；每天 0:00-9:00 静默不分享。",
+  "author": "小肥鱼",
+  "entry": "index.js",
+  "enabledByDefault": true,
+  "capabilities": [],
+  "requires": [],
+  "permissions": ["web_fetch"],
+  "settings": {
+    "enabled": true,
+    "dryRun": false,
+    "targets": "",
+    "intervalHours": 4,
+    "quietStart": 0,
+    "quietEnd": 9,
+    "maxSharesPerDay": 6,
+    "maxHobbies": 3
+  },
+  "configSchema": {
+    "enabled": {
+      "type": "boolean",
+      "label": "启用拟真爱好",
+      "description": "总开关。关掉后不再定时分享、也不再推进爱好进度（已存的爱好保留在磁盘上）。",
+      "group": "总开关"
+    },
+    "dryRun": {
+      "type": "boolean",
+      "label": "演练模式（只写日志，不真发）",
+      "description": "打开后照样生成分享内容，但只写进程序控制台，不真的发到 QQ。想先观察几天再启用就开它。",
+      "group": "总开关"
+    },
+    "targets": {
+      "type": "string",
+      "label": "分享给哪些 QQ（私聊，逗号分隔）",
+      "description": "留空 = 分享给聊天白名单里的所有私聊。填了只分享给这几个号。多个用逗号/空格/换行隔开。",
+      "group": "分享对象"
+    },
+    "intervalHours": {
+      "type": "number",
+      "label": "多久分享一次（小时）",
+      "description": "默认 4 小时。到点后做一次分享（可能发 1 条）。",
+      "group": "节奏"
+    },
+    "quietStart": {
+      "type": "number",
+      "label": "静默开始（小时 0-23）",
+      "description": "每天从这一小时起不分享。默认 0。",
+      "group": "静默时段"
+    },
+    "quietEnd": {
+      "type": "number",
+      "label": "静默结束（小时 0-23）",
+      "description": "每天到这一小时为止不分享（不含这一小时）。默认 9，即 0:00-9:00 静默。",
+      "group": "静默时段"
+    },
+    "maxSharesPerDay": {
+      "type": "number",
+      "label": "每天最多分享几条",
+      "description": "所有对象加起来一天最多分享几次，到量当天收工。默认 6。",
+      "group": "节奏"
+    },
+    "maxHobbies": {
+      "type": "number",
+      "label": "最多同时养几个爱好",
+      "description": "爱好数量上限，默认 3。",
+      "group": "节奏"
+    }
+  }
+}

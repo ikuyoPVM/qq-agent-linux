@@ -1,0 +1,33 @@
+[Unit]
+Description=QQ Agent (headless console)
+Documentation=https://github.com/ikuyoPVM/qq-agent-linux
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# 改成自己的部署用户与路径
+User=qq-agent
+Group=qq-agent
+WorkingDirectory=/opt/qq-agent
+Environment=NODE_ENV=production
+# 控制台端口（只监听 127.0.0.1，远程访问请走 SSH 隧道或 nginx）
+Environment=QQ_AGENT_PORT=3210
+# 数据目录可搬走：Environment=QQ_AGENT_DATA_DIR=/var/lib/qq-agent
+# 多实例：Environment=QQ_AGENT_PROFILE=2   （数据目录 data-2/，端口自动 +100）
+ExecStart=/usr/bin/node src/server.js
+
+# 崩溃即退出，由 systemd 拉起（进程内部也是这么约定的：异常 = exit(1)）
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+KillSignal=SIGINT
+
+# 基本加固
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

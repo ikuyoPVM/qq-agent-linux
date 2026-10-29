@@ -1,0 +1,86 @@
+{
+  "id": "arknights-master",
+  "name": "明日方舟大师",
+  "version": "1.3.2",
+  "apiVersion": 1,
+  "category": "knowledge",
+  "description": "让机器人成为《明日方舟》行家：内置 PRTS Wiki 资料库（460 名干员图鉴、术语、职业与分支、养成机制、基建、集成战略等），能算公开招募标签，能搜 B 站攻略视频（按播放+投币只挑一个最优的），被叫到时还能接群里的数字梗（325→长难句、799→血狼战歌，内容可自定义）。默认【被 @ 或戳一戳才启用】——不被叫到时连工具都不出现；被叫到时才按行家水准作答，资料库里没有的实时检索 prts.wiki。",
+  "author": "AI 生成 · 资料来自 PRTS Wiki (https://prts.wiki)",
+  "enabledByDefault": true,
+  "permissions": ["web_fetch"],
+  "settings": {
+    "triggerMode": "被@或戳一戳时",
+    "graceMinutes": 3,
+    "allowNetwork": true,
+    "maxPageChars": 3000,
+    "searchLimit": 5,
+    "biliCandidates": 8,
+    "memeEnabled": true,
+    "meme325Text": "325是什么意思？难道是出自明日方舟up主魔法ZC目录2024年3月11日的直播，ZC参与由“龙哥哥今天又鸽了”主办的民间赛事“仙术杯第五届”，代表冠军厨小队的第二位出战，使用科学分队焰影苇草开但由于临场过于紧张运气Maybe和肉鸽基础不够扎实等原因在第三层关底利刃所指暴毙，局内结算325分吗？",
+    "meme799Text": "🎵嘿——哟嗬！🎵 嘿——哟嗬！🎵\n🛠️ Work! Work! Work! Work! 嘿呦！🧱\n⚙️ Work! Work! Work! Work! 嘿呦！⛏️\n🔨 Work! Work! Work! Work! 嘿呦！🏗️\n💪🐺 勤劳又勇敢的血狼破军哟！🔥\n🚧 为了团队的关键刷铁机哟！⚙️\n🫡 他做出了巨大的贡献，🏆\n💀 巨大的牺牲，😭\n🏆 巨大的carry哟！✨\n💥 嘿！嘿！😎\n🎉 无敌了！无敌了！🎉",
+    "includeSource": true
+  },
+  "configSchema": {
+    "triggerMode": {
+      "type": "enum",
+      "values": ["被@或戳一戳时", "聊到明日方舟时", "总是"],
+      "label": "什么时候启用",
+      "description": "默认「被@或戳一戳时」：只有群友 @ 机器人、拍一拍或私聊时，这些工具与大师提示词才生效，平时完全不打扰（也不占提示词）。「聊到明日方舟时」：群里只要聊到方舟/干员就自动启用。「总是」：任何时候都可用。"
+    },
+    "graceMinutes": {
+      "type": "number",
+      "min": 0,
+      "max": 30,
+      "label": "被叫到后的宽限时间（分钟）",
+      "description": "被 @ 之后这段时间内，同一个群里的后续追问仍然算「刚才叫过你」（默认 3 分钟）。填 0 = 每条消息都要重新 @。私聊不受此限制。"
+    },
+    "allowNetwork": {
+      "type": "boolean",
+      "label": "允许联网查 PRTS Wiki / B 站",
+      "description": "开启后可以实时检索 prts.wiki、搜索 B 站视频；关闭后只用内置资料库回答（公招计算、干员图鉴、术语机制都能离线用），但不认识的干员/活动会查不到，B 站搜索也会停用。"
+    },
+    "maxPageChars": {
+      "type": "number",
+      "label": "单次返回正文上限（字符）",
+      "description": "联网读取 PRTS 页面时最多回给模型多少字符，默认 3000。范围 500~12000：越大越详细，也越费 token。",
+      "min": 500,
+      "max": 12000
+    },
+    "searchLimit": {
+      "type": "number",
+      "label": "PRTS 默认检索条数",
+      "description": "prts_search 默认返回几条结果，默认 5。范围 1~10。",
+      "min": 1,
+      "max": 10
+    },
+    "biliCandidates": {
+      "type": "number",
+      "label": "B 站候选池大小",
+      "description": "B 站搜索只发一个视频，但会先取这么多候选来比较播放量与投币数（默认 8）。范围 1~10：越大越可能挑到更好的，也更慢（每个候选都要多取一次详情）。",
+      "min": 1,
+      "max": 10
+    },
+    "memeEnabled": {
+      "type": "boolean",
+      "label": "群里的数字梗（325 / 799）",
+      "description": "开启后：被 @ 或戳一戳的那一轮里，消息出现 325 就原样发出「长难句」，出现 799 就原样发出「血狼战歌」（打字或发表情都算，因为表情在消息里就是 [表情325]）。没填内容的那一项不会发。"
+    },
+    "meme325Text": {
+      "type": "string",
+      "multiline": true,
+      "label": "「325」要发的内容（长难句）",
+      "description": "群里出现 325 时，机器人把这整段文案**一个字不改**地发出来。留空 = 这个梗不回应。可以多行。\n默认是群里常用的那段「长难句」（把 325 的来历一口气说完），要换成别的直接改这里。"
+    },
+    "meme799Text": {
+      "type": "string",
+      "multiline": true,
+      "label": "「799」要发的内容（血狼战歌）",
+      "description": "群里出现 799 时，机器人把这整段文案**一个字不改**地发出来。留空 = 这个梗不回应。可以多行。\n默认是《打灰燃曲》（血狼战歌）的歌词，emoji 与换行都会原样发出。"
+    },
+    "includeSource": {
+      "type": "boolean",
+      "label": "资料里附 PRTS 链接",
+      "description": "开启后工具返回的资料会带上 https://prts.wiki 的来源链接，方便群友自己去看原页面。"
+    }
+  }
+}

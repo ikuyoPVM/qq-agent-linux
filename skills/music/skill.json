@@ -1,0 +1,51 @@
+{
+  "id": "music",
+  "name": "点歌",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "media",
+  "description": "搜索并发送网易云 / QQ 音乐的音乐分享卡片，群友点开即可在对应 App 内播放。",
+  "author": "明",
+  "enabledByDefault": true,
+  "permissions": ["web_fetch"],
+  "settings": {
+    "defaultPlatform": "auto",
+    "maxResults": 5,
+    "archive": true,
+    "cardMode": "auto"
+  },
+  "configSchema": {
+    "defaultPlatform": {
+      "type": "enum",
+      "values": ["auto", "netease", "qq"],
+      "label": "默认音乐平台",
+      "description": "auto = 网易云优先，搜不到或疑似翻唱时自动换 QQ 音乐；也可锁定单一平台。"
+    },
+    "maxResults": {
+      "type": "number",
+      "label": "候选取几条",
+      "description": "搜索结果保留前几条供模型换版本用，1~10，默认 5。"
+    },
+    "archive": {
+      "type": "boolean",
+      "label": "归档已发送的歌",
+      "description": "把发出去的音乐卡片记到 data/Music，之后可按歌名找回链接、查歌词。"
+    },
+    "cardMode": {
+      "type": "enum",
+      "values": ["auto", "custom", "native"],
+      "label": "音乐卡片格式",
+      "description": "auto = 网易云走原生卡片（标「网易云音乐」）、QQ 音乐走自定义卡片 —— 推荐，一般别改；custom = 两个平台都用自定义卡片，网易云的歌会被标成「QQ音乐」；native = 两个平台都试原生卡片，QQ 音乐会发出客户端显示不出来的空卡。"
+    }
+  },
+  "prompt": {
+    "sections": [
+      {
+        "id": "music-note",
+        "title": "点歌",
+        "priority": 35,
+        "content": "群友想听歌时（「我要听歌」「放首歌」「来首XX」「点歌」）调用 send_music 工具发卡片，不要用文字列出歌名或贴链接代替。只说了「我要听歌」没给歌名时，自己从当前聊天上下文挑一首去搜，不要反问歌名。卡片发出后不要再复述歌名。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "id": "sticker-style-guard",
+  "name": "表情风格审核（恐怖/猎奇/恶俗拦截）",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "enabledByDefault": true,
+  "category": "message",
+  "description": "每次机器人收藏新表情时，自动多走一步：用视觉模型判定它的风格，把含恐怖、猎奇、恶俗元素的表情直接剔除，不让它进入模型的表情库",
+  "author": "本地加装",
+  "capabilities": [],
+  "requires": [],
+  "configSchema": {
+    "blockedStyles": {
+      "type": "string",
+      "label": "要拦截的风格",
+      "description": "用 | 分隔。默认拦：恐怖 | 惊悚 | 猎奇 | 血腥 | 恶心 | 恶俗 | 低俗 | 色情擦边。想少拦就把词删掉。",
+      "default": "恐怖|惊悚|猎奇|血腥|恶心|恶俗|低俗|色情擦边"
+    },
+    "extraRules": {
+      "type": "string",
+      "label": "额外判定要求",
+      "description": "写给审核模型看的补充规则，例如\"戴鬼脸面具的一律拦\"。留空则只用默认规则。",
+      "default": ""
+    },
+    "useVision": {
+      "type": "boolean",
+      "label": "用视觉模型看图判定",
+      "description": "默认开：真正看画面再判定（最准）。关掉则只靠标签文字关键词判定（省 token，但会漏）。",
+      "default": true
+    },
+    "unknownPolicy": {
+      "type": "enum",
+      "label": "判定不出来时怎么办",
+      "description": "block=宁可错杀（不确定就剔除，最稳）；allow=先放进来（事后可用 sticker_style_audit 复查）。",
+      "values": ["block", "allow"],
+      "default": "block"
+    },
+    "removeCompletely": {
+      "type": "boolean",
+      "label": "拦截时连图片一起删除",
+      "description": "默认开：记录和本地图片文件一起清掉，不留任何痕迹。关掉则只从库里移除、图片留在受控目录。",
+      "default": true
+    },
+    "reviewOnSend": {
+      "type": "boolean",
+      "label": "发送前二次把关",
+      "description": "默认开：没经过风格审核的表情不允许发出去（防止审核失败/超时的漏网条目被发到群里）。",
+      "default": true
+    },
+    "maxChecksPerHour": {
+      "type": "number",
+      "label": "每小时最多审核几张",
+      "description": "视觉审核要花 token，设个上限防意外刷爆。默认 30。",
+      "default": 30
+    },
+    "blockedStyleTag": {
+      "type": "string",
+      "label": "拦截时打什么标记",
+      "description": "被拦下的表情在移除前会打上这个标签（仅用于统计与日志核对）。",
+      "default": "风格拦截"
+    }
+  },
+  "settings": {
+    "blockedStyles": "恐怖|惊悚|猎奇|血腥|恶心|恶俗|低俗|色情擦边",
+    "extraRules": "",
+    "useVision": true,
+    "unknownPolicy": "block",
+    "removeCompletely": true,
+    "reviewOnSend": true,
+    "maxChecksPerHour": 30,
+    "blockedStyleTag": "风格拦截"
+  },
+  "prompt": {
+    "sections": [
+      {
+        "id": "sticker-style-guard",
+        "title": "表情风格审核",
+        "priority": 48,
+        "content": "- 你收藏新表情时（collect_sticker），系统会**自动**多走一步：用视觉模型判定这张图的风格，含恐怖、猎奇、恶俗元素的表情会被直接剔除，不会进入你的表情库。这一步由插件完成，不需要你操心。\n- 所以：如果你收藏后不久发现那张表情不在库里了，是风格审核把它拦下了，**不要试图重新收藏同一个内容**，也不要把它当成图库故障。\n- 用户问「刚才那张图怎么没了 / 为什么没收藏上」时，用 sticker_style_stats 查审核记录再回答；用户说「重新审核一遍表情库」时用 sticker_style_audit。\n- 不要向群里解释审核规则细节，被问起就说「那张不太合适，我不用它」。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "self-doctor",
+  "name": "系统自检",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "只读体检：启动时校验全部扩展的能力契约与目录语义，运行中扫描会话在「工具被排除 / 轮次触顶 / 静默失败 / 空回复」上的异常并聚合去重，并能对整个代码库（src/ui/plugins/skills，约 140 文件）做静态扫描找潜在问题（空白 catch、未处理 Promise、硬编码路径、递归 watch 等）。全程只读，不写任何被检对象，不改任何行为。注意：它与「健康系统」无关——那个是人设的生存状态模拟，这个是系统的健康状况。",
+  "author": "QQ Agent",
+  "enabledByDefault": true,
+  "capabilities": [
+    "doctor.report",
+    "doctor.scan-project",
+    "doctor.triage",
+    "doctor.triage-parse",
+    "doctor.tools"
+  ],
+  "requires": [],
+  "settings": {
+    "scanWindowSessions": 400,
+    "staleHours": 72,
+    "dupThreshold": 3,
+    "startupCheck": true,
+    "periodicCheckMin": 0,
+    "saveIntervalSec": 40
+  },
+  "configSchema": {
+    "scanWindowSessions": {
+      "type": "number",
+      "label": "巡检扫描的会话数",
+      "description": "检查最近多少个会话留档（新的优先）。默认 400。"
+    },
+    "staleHours": {
+      "type": "number",
+      "label": "异常时效（小时）",
+      "description": "超过该时间的会话不再计入「当前问题」，避免旧故障反复报警。"
+    },
+    "dupThreshold": {
+      "type": "number",
+      "label": "重复告警阈值",
+      "description": "同一异常在多少个会话里出现过才升级为「需处理」（低于此数只记为偶发）。"
+    },
+    "startupCheck": {
+      "type": "boolean",
+      "label": "启动时自动体检",
+      "description": "加载后立即跑一次契约与目录检查，结果写日志并广播。"
+    },
+    "periodicCheckMin": {
+      "type": "number",
+      "label": "定时巡检间隔（分钟）",
+      "description": "0 = 关闭定时巡检，只在调用工具或启动时检查。"
+    },
+    "saveIntervalSec": {
+      "type": "number",
+      "label": "结果落盘间隔（秒）",
+      "description": "体检结果写到 data/plugin-data/self-doctor/（不在 plugins/ 目录内）。"
+    }
+  },
+  "prompt": null
+}

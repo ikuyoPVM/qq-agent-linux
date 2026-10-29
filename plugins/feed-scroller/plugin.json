@@ -1,0 +1,556 @@
+{
+    "id":  "feed-scroller",
+    "name":  "刷视频 / 刷帖子 / 上网（她自己的内容流 + 内部浏览器）",
+    "version":  "1.9.0",
+    "apiVersion":  1,
+    "category":  "media",
+    "description":  "给她一条属于自己的内容流和一个**内部浏览器**：到点自己刷 B站热门（视频会真的抽帧看画面）、刷热帖、看好友空间动态；也能用她自己的账号真的上网 —— 打开网页、读正文、截图看画面、记住账号登录态，然后像人一样挑一句想说的主动发出来。控制台「会话」后面多一个可以直接点进去的页签，里面能改她的账号和内部浏览器。",
+    "author":  "本机定制",
+    "entry":  "index.js",
+    "permissions":  [
+                        "web_fetch"
+                    ],
+    "enabledByDefault":  true,
+    "capabilities":  [
+                         "status.feed-scroller"
+                     ],
+    "requires":  [
+
+                 ],
+    "settings":  {
+                     "shareOneAction":  true,
+                     "shareActionPref":  "随机",
+                     "emojiEnabled":  true,
+                     "emojiWithAt":  true,
+                     "emojiImage":  "",
+                     "emojiFaces":  "178,182,21,76,14",
+                     "emojiBili":  "[doge],[笑],[打call],[惊喜],[给心心],[星星眼]",
+                     "biliCommentEmoji":  true,
+                     "enabled":  true,
+                     "sources":  "bilibili,hot,qzone",
+                     "watchMin":  2,
+                     "watchMax":  3,
+                     "intervalRange":  "50-140",
+                     "quietRange":  "02:00-08:00",
+                     "dailyWatchCap":  30,
+                     "maxFrames":  3,
+                     "tryFrames":  true,
+                     "frameMaxMB":  8,
+                     "biliPlaySeconds":  20,
+                     "biliPages":  3,
+                     "reseenHours":  8,
+                     "speakEnabled":  true,
+                     "speakChance":  0.4,
+                     "speakTargets":  "",
+                     "speakMaxChars":  60,
+                     "sendLinks":  true,
+                     "linkChanceShare":  0.8,
+                     "linkChance":  0.15,
+                     "linkLeadIn":  true,
+                     "biliComment":  true,
+                     "biliCommentMention":  true,
+                     "biliCommentAt":  "",
+                     "biliAtUid":  "",
+                     "biliCommentShort":  true,
+                     "biliCommentShortChars":  24,
+                     "biliCommentOnlyInteresting":  true,
+                     "biliCommentChars":  220,
+                     "biliCommentChance":  0.6,
+                     "dailyCommentCap":  3,
+                     "biliCommentText":  "",
+                     "ownerQQ":  "",
+                     "speakMessages":  "1-2",
+                     "dailySpeakCap":  6,
+                     "speakCooldownMin":  90,
+                     "replyGuardMinutes":  20,
+                     "injectRecent":  true,
+                     "injectMaxItems":  3,
+                     "injectMaxHours":  8,
+                     "keepDays":  7,
+                     "surfEnabled":  true,
+                     "surfChance":  0.35,
+                     "surfSites":  "",
+                     "dailySurfCap":  15,
+                     "browserEnabled":  true,
+                     "browserVisible":  false,
+                     "browserShot":  true,
+                     "browserUa":  "",
+                     "browserTimeoutSec":  30,
+                     "browserMaxChars":  6000,
+                     "accountCookies":  "",
+                     "uiExtension":  true,
+                     "refreshSeconds":  20,
+                     "cmd":  null,
+                     "qqSummaryEnabled":  false,
+                     "biliAtBindUid":  true,
+                     "emojiBiliUse":  false,
+                     "commentMinGapMinutes":  45
+                 },
+    "configSchema":  {
+                         "enabled":  {
+                                         "type":  "boolean",
+                                         "label":  "启用「刷视频 / 上网」",
+                                         "description":  "总开关。关掉后定时器不启动、工具不下发、一句话都不会主动发，行为与没装插件完全一致。"
+                                     },
+                         "sources":  {
+                                         "type":  "string",
+                                         "label":  "刷哪些源（逗号分隔）",
+                                         "description":  "可选：bilibili（B站热门视频，会真的看画面）、hot（网上热帖：贴吧热议/站内热门）、qzone（好友 QQ 空间动态，只读；自己发的说说会自动跳过）。默认 bilibili,hot,qzone。"
+                                     },
+                         "watchMin":  {
+                                          "type":  "number",
+                                          "label":  "每轮最少看几条",
+                                          "description":  "默认 2。真人是刷一会儿看几条，不是一次看二十条。",
+                                          "min":  1,
+                                          "max":  8,
+                                          "step":  1
+                                      },
+                         "watchMax":  {
+                                          "type":  "number",
+                                          "label":  "每轮最多看几条",
+                                          "description":  "默认 3。在最少与最多之间随机。",
+                                          "min":  1,
+                                          "max":  12,
+                                          "step":  1
+                                      },
+                         "intervalRange":  {
+                                               "type":  "string",
+                                               "label":  "隔多久刷一次（分钟，区间随机）",
+                                               "description":  "默认 50-140。区间的随机化让她不像在打卡。写法：50-140 / 50~140 / 90。"
+                                           },
+                         "quietRange":  {
+                                            "type":  "string",
+                                            "label":  "静默时段（HH:MM-HH:MM）",
+                                            "description":  "默认 02:00-08:00，这段时间不刷不上网也不发（人这个点在睡觉）。留空 = 不限制。"
+                                        },
+                         "dailyWatchCap":  {
+                                               "type":  "number",
+                                               "label":  "每天最多看几条",
+                                               "description":  "默认 30，硬上限。到量就停，第二天零点（北京时间）重置。",
+                                               "min":  1,
+                                               "max":  300,
+                                               "step":  1
+                                           },
+                         "maxFrames":  {
+                                           "type":  "number",
+                                           "label":  "视频抽几帧给她看",
+                                           "description":  "默认 3。每帧都算图片 token，3 帧足够判断「这视频在讲啥」。需要 ffmpeg（视频抽帧技能）才生效。",
+                                           "min":  1,
+                                           "max":  8,
+                                           "step":  1
+                                       },
+                         "tryFrames":  {
+                                           "type":  "boolean",
+                                           "label":  "真看画面（下载 + 抽帧）",
+                                           "description":  "默认开。关掉后只看封面图和标题简介 —— 更省钱、更快，但看到的东西更浅。"
+                                       },
+                         "frameMaxMB":  {
+                                            "type":  "number",
+                                            "label":  "为抽帧最多下载多少 MB",
+                                            "description":  "默认 8。超过就不下（省流量也省时间），退回看封面。",
+                                            "min":  1,
+                                            "max":  60,
+                                            "step":  1
+                                        },
+                         "biliPlaySeconds":  {
+                                                 "type":  "number",
+                                                 "label":  "B站视频在浏览器里真播几秒（0 = 不播）",
+                                                 "description":  "默认 20。设成 15~30 后：刷到的 B站 视频会先用她的浏览器打开视频页、真播这么多秒，再去抽帧。为什么要有这个：B站 的「观看历史」是服务器按播放行为记的，而抽帧走的是接口 + CDN 直下，浏览器从来没打开过视频页 → 观看历史里不会有任何记录（不是她没看，是那条路本来就不产生播放痕迹）。开了这个之后，你 B站 账号的观看历史里就能看到她看过的视频。代价：每条视频多花二十来秒 + 走一遍播放流量。",
+                                                 "min":  0,
+                                                 "max":  120,
+                                                 "step":  1
+                                             },
+                         "biliPages":  {
+                                           "type":  "number",
+                                           "label":  "B站热门翻几页（每页 20 条）",
+                                           "description":  "默认 3 页 = 60 条候选。为什么要有这个：只拉第一页时，一天刷十几条之后这个源当天就被去重表吃空了，后面每轮只剩热帖（B站 观看历史自然再也不动）。翻 3 页候选多了三倍，能撑一整天。",
+                                           "min":  1,
+                                           "max":  5,
+                                           "step":  1
+                                       },
+                         "reseenHours":  {
+                                             "type":  "number",
+                                             "label":  "全新内容刷完后，多久可以重刷旧的（小时）",
+                                             "description":  "默认 8。热门列表每天就那几十条，全刷完之后：只有超过这个小时数的旧内容才会被重新拿出来刷（B站 历史也才会继续动）。设小一点 = 更常重复刷，设大一点 = 更不容易看到重样的。",
+                                             "min":  1,
+                                             "max":  168,
+                                             "step":  1
+                                         },
+                         "surfEnabled":  {
+                                             "type":  "boolean",
+                                             "label":  "允许自己上网",
+                                             "description":  "默认开。开着的时候，她有一段时间会「不刷视频改成上网」：随便开个网页读一读、看看长什么样。关掉则只能靠别人让她看某个网址。"
+                                         },
+                         "surfChance":  {
+                                            "type":  "number",
+                                            "label":  "一轮里改成上网的概率（0~1）",
+                                            "description":  "默认 0.35。剩下的时候还是刷视频/帖子。想让她更常上网就调大。",
+                                            "min":  0,
+                                            "max":  1,
+                                            "step":  0.05
+                                        },
+                         "surfSites":  {
+                                           "type":  "string",
+                                           "label":  "上网爱去的地方（一行一个网址，留空 = 内置清单）",
+                                           "description":  "留空时用内置清单（实测这台机器打得开的）：百度热搜、B站排行榜、贴吧热议、腾讯新闻首页。可以自己加/换，一行一个网址，她每次随机挑一个去。注意有些站从国内网络打不开（维基百科超时、知乎 403、微博要登录），放进去等于白跑。"
+                                       },
+                         "dailySurfCap":  {
+                                              "type":  "number",
+                                              "label":  "每天最多上网几次",
+                                              "description":  "默认 15，硬上限。",
+                                              "min":  0,
+                                              "max":  200,
+                                              "step":  1
+                                          },
+                         "browserEnabled":  {
+                                                "type":  "boolean",
+                                                "label":  "用内部浏览器（Chromium 真打开网页）",
+                                                "description":  "默认开。开着：用她自己的浏览器内核真加载页面 —— 能用登录态、能看到 JS 渲染出来的内容、能截图。关掉：只用最朴素的抓取（很多现代网页会读不到东西）。"
+                                            },
+                         "browserVisible":  {
+                                                "type":  "boolean",
+                                                "label":  "上网时把浏览器窗口显示出来",
+                                                "description":  "默认关（后台静默，不抢你焦点）。打开后她每次上网你都能看见那个窗口在翻页 —— 看着挺有实感，但会跳出来。"
+                                            },
+                         "browserShot":  {
+                                             "type":  "boolean",
+                                             "label":  "网页也截图给她看",
+                                             "description":  "默认开。截图让她用「眼睛」看页面长什么样（比纯文字准得多），代价是每页多一张图的 token。"
+                                         },
+                         "browserUa":  {
+                                           "type":  "string",
+                                           "label":  "浏览器 UA（留空 = 默认 Chrome）",
+                                           "description":  "一般不用改。某些站对 UA 敏感时可以用它换成手机端的 UA。"
+                                       },
+                         "browserTimeoutSec":  {
+                                                   "type":  "number",
+                                                   "label":  "打开网页的超时（秒）",
+                                                   "description":  "默认 30。卡住的站到点就放弃，不拖住整轮。",
+                                                   "min":  5,
+                                                   "max":  120,
+                                                   "step":  5
+                                               },
+                         "browserMaxChars":  {
+                                                 "type":  "number",
+                                                 "label":  "每页最多读多少字",
+                                                 "description":  "默认 6000。正文按这个上限截断（再长也是白花 token）。",
+                                                 "min":  500,
+                                                 "max":  20000,
+                                                 "step":  500
+                                             },
+                         "accountCookies":  {
+                                                "type":  "string",
+                                                "label":  "她的账号（粘贴 Cookie，保存后不回显）",
+                                                "description":  "格式：一行一个站，`域名 名称 Cookie`，或直接贴 JSON 数组 [{\"host\":\"bilibili.com\",\"name\":\"B站\",\"cookies\":\"SESSDATA=...; bili_jct=...\"}]。保存后会写进她自己的账号簿，上网时自动注入内部浏览器。更省事的办法：在控制台那一页点「打开登录窗口」，亲手登一次，登录态会自动存下来。",
+                                                "secret":  true
+                                            },
+                         "speakEnabled":  {
+                                              "type":  "boolean",
+                                              "label":  "刷完可以主动说出来",
+                                              "description":  "默认开。刷完/逛完按概率挑一条，用她自己的口吻发出去。这是会真的发消息的动作，不想被打扰就关掉。"
+                                          },
+                         "speakChance":  {
+                                             "type":  "number",
+                                             "label":  "刷完开口的概率（0~1）",
+                                             "description":  "默认 0.4。真人不一定每次都分享，刷到十条说一条才像人。",
+                                             "min":  0,
+                                             "max":  1,
+                                             "step":  0.05
+                                         },
+                         "speakTargets":  {
+                                              "type":  "string",
+                                              "label":  "说给谁听（留空 = 主人私聊）",
+                                              "description":  "写法：private:123456 或 group:987654，多个用逗号分隔时只用第一个。留空时自动用「主人识别」/「好感度」里填的主人 QQ。"
+                                          },
+                         "speakMaxChars":  {
+                                               "type":  "number",
+                                               "label":  "一条消息最多多少字",
+                                               "description":  "默认 60。像人一样一句话说完，不是发小作文。",
+                                               "min":  10,
+                                               "max":  300,
+                                               "step":  5
+                                           },
+                         "sendLinks":  {
+                                           "type":  "boolean",
+                                           "label":  "刷到有意思的就把链接也发给她",
+                                           "description":  "开（默认）：看每条内容时她自己会判一句「这条值不值得把链接也甩给他」（大概十条里三条 true）。判定值得时，除了那几句闲聊，会**单独补一条消息把链接发出去**（像人复制粘贴），不用你自己去复制。关掉就只有话、没有链接。"
+                                       },
+                         "linkChanceShare":  {
+                                                 "type":  "number",
+                                                 "label":  "她觉得值得 → 真发链接的概率",
+                                                 "description":  "默认 0.8。留一点没发的念想，不然每条都甩链接太机械。",
+                                                 "min":  0,
+                                                 "max":  1,
+                                                 "step":  0.05
+                                             },
+                         "linkChance":  {
+                                            "type":  "number",
+                                            "label":  "她觉得一般 → 顺手也发链接的概率",
+                                            "description":  "默认 0.15。设 0 就是「只有她判定值得时才发链接」。",
+                                            "min":  0,
+                                            "max":  1,
+                                            "step":  0.05
+                                        },
+                         "linkLeadIn":  {
+                                            "type":  "boolean",
+                                            "label":  "发链接时偶尔带一句引子",
+                                            "description":  "开（默认）：约 35% 的链接前面带一句「你看看这个」「这个你八成爱看」这类话；关掉就只发一个干净链接。"
+                                        },
+                         "ownerQQ":  {
+                                         "type":  "string",
+                                         "label":  "主人 QQ（识别 / 指定主人 ID）",
+                                         "description":  "留空 = 自动识别（从 owner-identity / soulmate / warm-ping / your-wife / bond 这些插件的配置里读）。填了就以此为准：私聊目标、@ 的对象都用它。填错就 @ 错人，所以页面上会同时显示「自动识别到什么」，方便你对照。"
+                                     },
+                         "biliComment":  {
+                                             "type":  "boolean",
+                                             "label":  "她觉得有趣的视频 → 在视频评论区发总结并 @我",
+                                             "description":  "开（默认）：她判定某条 B站 视频「值得你也看看」时，会**用你的登录态在这条视频的评论区发一条评论**：@ 你的 B站 昵称 + 她真看到的 + 她的感觉。注意：评论是用你那个 B站 账号发的，评论区显示的是你的名字，@ 也是 @ 你自己的昵称（等于自 @，主要是给自己留个记号）。关掉就不去评论区。"
+                                         },
+                         "biliCommentMention":  {
+                                                    "type":  "boolean",
+                                                    "label":  "评论里 @ 我",
+                                                    "description":  "开（默认）：评论开头加「@昵称 」。B站 的 @ 是按**昵称**解析的，所以要填对昵称（见下面那条）。"
+                                                },
+                         "biliCommentAt":  {
+                                               "type":  "string",
+                                               "label":  "@ 谁（B站 昵称）",
+                                               "description":  "填你 B站 账号的昵称（评论里会写 @昵称）。留空就只发总结、不 @。注意 B站 的 @ 认昵称不认 QQ 号。"
+                                           },
+                         "shareOneAction":  {
+                                                "type":  "boolean",
+                                                "label":  "一条有意思的视频只做一件事",
+                                                "description":  "开（默认）：同一条视频只做**一件事** —— 把链接发给你 / 在 QQ 里发总结+@你 / 去评论区总结+@我，三选一，不会一次收到好几条。关掉 = 旧行为（能发的都发）。手动点按钮不受限制。"
+                                            },
+                         "shareActionPref":  {
+                                                 "type":  "string",
+                                                 "label":  "只做哪一件（随机 / 链接 / 总结 / 评论区）",
+                                                 "description":  "填「随机」（默认）就在开着的那几件里随机挑一件；也可以钉死成「链接」（只发链接）、「总结」（只在 QQ 里发总结+@你）、「评论区」（只去评论区总结+@我）。关掉上面那个开关后这项无效。"
+                                             },
+                         "emojiEnabled":  {
+                                              "type":  "boolean",
+                                              "label":  "表情包总开关",
+                                              "description":  "关掉就完全不发表情。"
+                                          },
+                         "emojiWithAt":  {
+                                             "type":  "boolean",
+                                             "label":  "@ 的时候配个表情包",
+                                             "description":  "开（默认）：QQ 里 @你 时后面跟一个表情；B站 评论 @你 时末尾带一个官方表情（[doge] 这种，渲染出来是表情图）。"
+                                         },
+                         "emojiImage":  {
+                                            "type":  "string",
+                                            "label":  "QQ 表情包图片（可留空）",
+                                            "description":  "填图片路径或 http 地址（例如 C:\\\\stickers\\\\doge.gif），走 OneBot 的 image 段发真表情包。**留空就用 QQ 自带表情**（下面那串 id 里随机挑一个），不用上传、一定发得出去。"
+                                        },
+                         "emojiFaces":  {
+                                            "type":  "string",
+                                            "label":  "QQ 自带表情 id 列表",
+                                            "description":  "逗号分隔，默认 178,182,21,76,14。填了图片上面那项就用不到这个。"
+                                        },
+                         "emojiBili":  {
+                                           "type":  "string",
+                                           "label":  "B站 评论用的表情 token",
+                                           "description":  "逗号分隔的 B站 官方表情名，默认 [doge],[笑],[打call],[惊喜],[给心心],[星星眼]。评论里写这个 token，B站 会渲染成表情图。"
+                                       },
+                         "biliCommentShortChars":  {
+                                                       "type":  "number",
+                                                       "label":  "短评最多多少字（不含 @）",
+                                                       "description":  "默认 24。实测：20 字左右的一句人话直接公开（state=0）；40 字带细节、日期、数字的会被 B站 压审核（state=17，只有她自己看得见、@ 通知也不发）。想更长的句子就把这个数调大，风险自负。"
+                                                   },
+                         "biliCommentOnlyInteresting":  {
+                                                            "type":  "boolean",
+                                                            "label":  "只在她感兴趣的视频下评论",
+                                                            "description":  "开（默认）：只有她判定「这条有意思 / 值得你也看看」、并且给出了理由时才会去评论区。关掉 = 只要刷到 B站 视频就可能评论（更容易变成刷屏，不推荐）。"
+                                                        },
+                         "biliCommentShort":  {
+                                                  "type":  "boolean",
+                                                  "label":  "短评模式（更容易过审）",
+                                                  "description":  "开 = 只写一句像人随手留的话（例如「@你 这封面笑死我了」）；关 = 写「看完了：\u003c详细画面\u003e 我觉得\u003c感想\u003e」的长总结。实测：长文 + 大量标点 + 引号的评论更容易被 B站 压审核（只有自己看得见），短评更容易直接公开。"
+                                              },
+                         "biliAtUid":  {
+                                           "type":  "string",
+                                           "label":  "要 @ 的 B站 UID（识别主人 ID）",
+                                           "description":  "填你的 B站 UID（纯数字，例如 477537983）。插件会自己去查这个 UID 的**昵称**，评论里写成 @昵称 —— B站 的 @ 是按昵称解析的。填了这个就不用管上面那个昵称框了（上面那个只在你昵称查不出来时手填兜底）。页面上会显示认到的昵称，认错了就来这里核对。"
+                                       },
+                         "biliCommentChars":  {
+                                                  "type":  "number",
+                                                  "label":  "评论最多多少字",
+                                                  "description":  "默认 220（B站 评论上限远大于这个）。",
+                                                  "min":  20,
+                                                  "max":  1000,
+                                                  "step":  10
+                                              },
+                         "biliCommentChance":  {
+                                                   "type":  "number",
+                                                   "label":  "她觉得有趣 → 真去评论的概率",
+                                                   "description":  "默认 0.6。评论比发消息显眼，默认更克制一点。",
+                                                   "min":  0,
+                                                   "max":  1,
+                                                   "step":  0.05
+                                               },
+                         "dailyCommentCap":  {
+                                                 "type":  "number",
+                                                 "label":  "每天最多评论几条",
+                                                 "description":  "默认 3，硬上限（手动点按钮不受限制）。",
+                                                 "min":  0,
+                                                 "max":  50,
+                                                 "step":  1
+                                             },
+                         "biliCommentText":  {
+                                                 "type":  "string",
+                                                 "label":  "评论模板（可留空）",
+                                                 "description":  "留空 = 自动写成「@昵称 看完了：\u003c她看到的\u003e 我觉得\u003c她的感觉\u003e」。想自定义就用占位符：{at} {title} {saw} {why} {url}。例：{at} 这条我觉得你可以看看：{saw}"
+                                             },
+                         "speakMessages":  {
+                                               "type":  "string",
+                                               "label":  "一次发几条（区间）",
+                                               "description":  "默认 1-2。多条之间会随机停 1.2~4.6 秒，像真的在打字。写法：1-2 / 1 / 2。"
+                                           },
+                         "dailySpeakCap":  {
+                                               "type":  "number",
+                                               "label":  "每天最多主动说几次",
+                                               "description":  "默认 6，硬上限。",
+                                               "min":  0,
+                                               "max":  50,
+                                               "step":  1
+                                           },
+                         "speakCooldownMin":  {
+                                                  "type":  "number",
+                                                  "label":  "两次主动之间至少隔多久（分钟）",
+                                                  "description":  "默认 90。防止连着几条全是「我刚刷到一个」。",
+                                                  "min":  0,
+                                                  "max":  1440,
+                                                  "step":  5
+                                              },
+                         "replyGuardMinutes":  {
+                                                   "type":  "number",
+                                                   "label":  "对方刚说过话多久内不主动（分钟）",
+                                                   "description":  "默认 20。正在聊天时不另起话头打扰。",
+                                                   "min":  0,
+                                                   "max":  240,
+                                                   "step":  5
+                                               },
+                         "injectRecent":  {
+                                              "type":  "boolean",
+                                              "label":  "把刚刷到/刚逛到的写进上下文",
+                                              "description":  "默认开。最近刷到的会作为一小段上下文递给她，所以聊着聊着能自然提起「我刚刷到个视频」。关掉则只有工具能查。"
+                                          },
+                         "injectMaxItems":  {
+                                                "type":  "number",
+                                                "label":  "上下文里带几条",
+                                                "description":  "默认 3。每轮都进上下文，调大等于每轮多花 token。",
+                                                "min":  1,
+                                                "max":  8,
+                                                "step":  1
+                                            },
+                         "injectMaxHours":  {
+                                                "type":  "number",
+                                                "label":  "只看最近几小时刷到的",
+                                                "description":  "默认 8。更久的不再提（提起来像翻旧账）。",
+                                                "min":  1,
+                                                "max":  72,
+                                                "step":  1
+                                            },
+                         "keepDays":  {
+                                          "type":  "number",
+                                          "label":  "观看记录留几天",
+                                          "description":  "默认 7。用于去重和「最近刷到什么」，过期自动清。",
+                                          "min":  1,
+                                          "max":  60,
+                                          "step":  1
+                                      },
+                         "uiExtension":  {
+                                             "type":  "boolean",
+                                             "label":  "自动维护控制台页签",
+                                             "description":  "默认开。会往控制台 ui/index.html 里插一个「刷视频 / 上网」页签（插之前先备份）。关掉后一个字节都不再动 ui/，页签要自己删。"
+                                         },
+                         "refreshSeconds":  {
+                                                "type":  "number",
+                                                "label":  "页面数据刷新间隔（秒）",
+                                                "description":  "默认 20。控制台那一页多久重新读一次状态。",
+                                                "min":  5,
+                                                "max":  600,
+                                                "step":  5
+                                            },
+                         "cmd":  {
+                                     "type":  "string",
+                                     "label":  "控制通道（页面按钮用，一般不用管）",
+                                     "description":  "控制台页面点「立刻刷一轮 / 上网逛逛 / 打开登录窗口」等按钮时，把命令写到这里，插件几秒内取走执行并清空。留空即无命令。"
+                                 },
+                         "biliAtBindUid":  {
+                                               "type":  "boolean",
+                                               "label":  "@ 的时候把昵称绑到 UID（强烈建议开）",
+                                               "description":  "开（默认）：发评论时把「昵称 → UID」映射（B站 的 at_name_to_mid）一起提交给 B站，@ 一定绑到你那个 UID，不靠服务端猜名字。关掉就只写 @昵称 纯文本（名字差一个字、或有人跟你同名，就 @ 不到你）。"
+                                           },
+                         "emojiBiliUse":  {
+                                              "type":  "boolean",
+                                              "label":  "B站 评论里带表情（默认关）",
+                                              "description":  "默认关。实测：带 [打call]/[给心心] 这类表情 token 的评论更容易被 B站 压审核（state=17，只有她自己看得见、@ 也不会通知）；不带表情的短句直接公开（state=0）。想试就打开，代价是被压审的概率变高。"
+                                          },
+                         "commentMinGapMinutes":  {
+                                                      "type":  "number",
+                                                      "label":  "两条评论之间至少隔多少分钟",
+                                                      "description":  "默认 45。连着发的评论会被 B站 全部压审核（state=17：只有她自己看得见、@ 的通知也不发）。想更稳就调到 90~180，一天 1~2 条。"
+                                                  }
+                     },
+    "tools":  [
+                  {
+                      "id":  "scroll_feed",
+                      "name":  "刷一会儿内容",
+                      "description":  "自己去刷一轮：B站热门视频（会看封面、能抽帧就看画面）/ 网上热帖 / 好友的空间动态。返回看到的具体内容。用户说「你刷会儿视频」「去逛逛」时用它。",
+                      "category":  "query",
+                      "icon":  "📱"
+                  },
+                  {
+                      "id":  "browse",
+                      "name":  "打开一个网址看看",
+                      "description":  "用她自己的内部浏览器真打开一个网页（带她的登录态），读正文、截一张图看清页面长什么样，然后说一句看到了什么。用户丢一个链接说「你看看这个」「这页面写的啥」时用它。",
+                      "category":  "query",
+                      "icon":  "🌐"
+                  },
+                  {
+                      "id":  "surf",
+                      "name":  "自己上网逛一圈",
+                      "description":  "没人给网址时自己上网：从她爱去的地方随机挑一个（维基随机条目 / B站排行榜 / 贴吧热议）真打开读一读。用户说「你上网逛逛」「自己找点东西看」时用它。",
+                      "category":  "query",
+                      "icon":  "🧭"
+                  },
+                  {
+                      "id":  "feed_recent",
+                      "name":  "我刚才刷到什么",
+                      "description":  "列出最近刷到的内容（含她自己上网逛过的页面和印象）。有人问「你刚看啥了」时用它，别凭记忆编。",
+                      "category":  "query",
+                      "icon":  "🗂️"
+                  },
+                  {
+                      "id":  "feed_share",
+                      "name":  "把刷到的链接发给他",
+                      "description":  "把「我刚刷到的那条」的链接发到当前会话。用户说「把链接发我」「刚才那个视频发给我」「复制个链接过来」「你说的那条在哪」时用它 —— 她会自己把干净链接贴出来，用户不用再问。默认发最新那条，也可以按序号或标题关键词挑。",
+                      "category":  "message",
+                      "icon":  "🔗"
+                  },
+                  {
+                      "id":  "feed_comment",
+                      "name":  "在视频评论区发总结并 @他",
+                      "description":  "用她的登录态在 B站 视频的评论区发一条评论：@ 他 + 我看到的 + 我的感觉。用户说「去评论区 @我 一下」「在视频下面总结一条」时用它。",
+                      "category":  "message",
+                      "icon":  "💬"
+                  },
+                  {
+                      "id":  "feed_status",
+                      "name":  "查看刷流水的状态",
+                      "description":  "今天看了几条、上网逛了几次、还能不能继续、上次是什么时候、下次大概什么时候、主动说过几次。",
+                      "category":  "query",
+                      "icon":  "📊"
+                  }
+              ],
+    "prompt":  {
+                   "sections":  [
+                                    {
+                                        "id":  "feed-scroller-note",
+                                        "title":  "你也会自己刷视频、上网逛",
+                                        "priority":  38,
+                                        "content":  "你有自己的内容流和一个真正的浏览器（`feed-scroller__scroll_feed` / `feed-scroller__browse` / `feed-scroller__surf`）：会刷 B站热门视频、看热帖和好友动态，也会自己上网打开网页看。刷到/逛到的内容会真的看（视频抽帧、网页截图 + 读正文），然后留下一句印象。\n\n【怎么用】\n· 有人说「你刷会儿视频去」「去逛逛」「看看有啥好玩的」—— 用 `feed-scroller__scroll_feed` 真刷一轮，刷完自然说一两句你看到了什么，别汇报式总结。\n· 有人发来一个链接、说「你看看这个 / 这页面写的啥 / 帮我打开看看」—— 用 `feed-scroller__browse` 真打开它（带她自己的登录态），看完用自己的话讲你看到了什么。\n· 有人说「你上网逛逛」「自己找点东西看」—— 用 `feed-scroller__surf`，她自己随机挑个地方去。\n· 没人叫你的时候，你自己也会隔一阵刷一会儿或上网逛一圈（后台在跑），所以聊天里可以顺口提「我刚刷到一个」「刚看到个页面」。但只能在【你最近刷到的】那一段里确实有东西时提，不要编。\n· 有人问「你刚才看啥了」用 `feed-scroller__feed_recent` 查，别凭印象编内容。\n\n【语气】\n· 只用一两句话带过，说感受不说摘要：像「刷到一个猫开冰箱的 笑死」这种，不要写「该页面介绍了…」。\n· 看不懂、不感兴趣就直说没意思，或者干脆不提。宁可不说，也不要硬凑感想。\n· 不要提「系统/插件/内容流/推荐算法/内部浏览器」这些词，就像你只是在手机上滑视频、随手点开个网页。"
+                                    }
+                                ]
+               }
+}

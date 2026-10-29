@@ -1,0 +1,56 @@
+{
+  "id": "web-eye",
+  "name": "真浏览器（她会自己上网看页面）",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "web",
+  "description": "给她一个真正的 headless Chromium：打开网页会真的渲染并截图给她看，能点按钮、填表单、按键、滚动、拖拽 —— 前端渲染的站点（B站排行榜、模拟盘、看板）也看得见、玩得动。零依赖（CDP 直连），常驻单例，登录态存在自己的 profile 里。",
+  "author": "本机定制",
+  "enabledByDefault": true,
+  "permissions": [],
+  "capabilities": [
+    "web.render",
+    "web.eye.status"
+  ],
+  "requires": [],
+  "settings": {
+    "chromePath": "",
+    "debugPort": 9222,
+    "viewportWidth": 1280,
+    "viewportHeight": 900,
+    "shotMaxWidth": 1000,
+    "shotQuality": 72,
+    "maxTextChars": 4000,
+    "waitAfterAction": 700,
+    "elementLimit": 30,
+    "idleCloseMinutes": 15,
+    "idleShutdownMinutes": 30
+  },
+  "configSchema": {
+    "chromePath": {
+      "type": "string",
+      "label": "chrome 可执行文件路径",
+      "description": "留空自动找：data/web-eye/chrome/chrome-headless-shell → /tmp/chs/... → /usr/bin/chromium"
+    },
+    "debugPort": { "type": "number", "label": "CDP 调试端口", "description": "默认 9222，只监听 127.0.0.1，不对外。" },
+    "viewportWidth": { "type": "number", "label": "视口宽（像素）", "description": "默认 1280。窄一点更省 token，但复杂页面会折行。" },
+    "viewportHeight": { "type": "number", "label": "视口高（像素）", "description": "默认 900。" },
+    "shotMaxWidth": { "type": "number", "label": "截图最大宽度", "description": "默认 1000。截图进上下文按像素计价，调小能省一半 token。" },
+    "shotQuality": { "type": "number", "label": "JPEG 质量", "description": "默认 72（30~95）。" },
+    "maxTextChars": { "type": "number", "label": "read 默认读取字数上限", "description": "默认 4000。" },
+    "waitAfterAction": { "type": "number", "label": "操作后等待（毫秒）", "description": "点完/输完等页面反应的时间，默认 700。动画多的站点可以给 1200。" },
+    "elementLimit": { "type": "number", "label": "元素清单条数", "description": "默认 30。太多会占 token。" },
+    "idleCloseMinutes": { "type": "number", "label": "页面闲置多少分钟自动关", "description": "默认 15。关 tab 立刻还内存，不影响登录态。" },
+    "idleShutdownMinutes": { "type": "number", "label": "浏览器闲置多少分钟收掉", "description": "默认 30。全都没人用时把 chrome 进程也停掉；下次用会冷启动（~1 秒）。" }
+  },
+  "prompt": {
+    "sections": [
+      {
+        "id": "web-eye-note",
+        "title": "你真的能上网看页面",
+        "priority": 36,
+        "content": "你有一个真的浏览器：可以打开网页、真的看到页面（截图）、点按钮、填输入框、按键、滚动、拖拽。用户丢网址、让你查页面、让你在一个网站上做事时，用 open 打开它，然后看截图 + 元素清单决定下一步；必要时连续操作几次，每次操作后都会回到一张新截图。页面上的数字要引用就用 read 把正文读出来，别照着截图里的像素瞎猜。看不到的东西（要登录、要滑动验证、被墙）就直说看不到，不要编造页面内容。"
+      }
+    ]
+  }
+}

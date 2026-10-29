@@ -1,0 +1,34 @@
+{
+  "id": "rmb-uppercase",
+  "name": "金额大写转换",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "把人民币阿拉伯数字金额转成中文大写（如 1234.56 → 壹仟贰佰叁拾肆元伍角陆分），适合合同金额、报销单据、红包留言等场景。",
+  "author": "AI 生成",
+  "enabledByDefault": false,
+  "entry": "index.js",
+  "settings": {},
+  "configSchema": {},
+  "prompt": {
+    "when": "当用户给出一个阿拉伯数字金额、希望转成中文大写时（合同、报销、红包留言等场景）",
+    "examples": ["把 1234.56 转成大写", "208500 元的大写怎么写"],
+    "instruction": "调用 rmb_uppercase 工具，参数 amount 传数字或金额字符串；把返回的大写金额原样给用户，并附上小写原值方便核对。"
+  },
+  "tools": [
+    {
+      "id": "rmb_uppercase",
+      "name": "金额转中文大写",
+      "description": "把人民币金额（数字）转成中文大写形式，精确到分；无法识别的输入返回错误说明",
+      "category": "system",
+      "icon": "💰",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "amount": { "type": "string", "description": "金额数字，支持纯数字、千分位逗号、￥前缀，如 1234.56、￥12,000" }
+        },
+        "required": ["amount"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "id": "anti-recall",
+  "name": "防撤回",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "收到群/私聊撤回时，用机器人身份把被撤回的消息原文（含图片、表情、@）重新发出来。本插件通过核心暴露的 onMessage / onRecall 钩子工作，需先在 src/app.js 加上这两个钩子调用（见 CORE-PATCH.md），否则安静待命、无任何副作用。",
+  "author": "QQ Agent",
+  "enabledByDefault": true,
+  "settings": {
+    "groupEnabled": true,
+    "privateEnabled": true,
+    "showOperator": true,
+    "showContent": true,
+    "includeImages": true,
+    "atOperator": false,
+    "prefix": "【防撤回】",
+    "cacheTTLMin": 60,
+    "cooldownSec": 1
+  },
+  "configSchema": {
+    "groupEnabled": {
+      "type": "boolean",
+      "label": "群消息防撤回",
+      "description": "开启后，群里有人撤回消息会把原文重发到群里。"
+    },
+    "privateEnabled": {
+      "type": "boolean",
+      "label": "私聊防撤回",
+      "description": "开启后，私聊里对方撤回消息会把原文重发回去。"
+    },
+    "showOperator": {
+      "type": "boolean",
+      "label": "显示撤回者",
+      "description": "在重发内容里注明是谁操作的撤回（QQ 号）。"
+    },
+    "showContent": {
+      "type": "boolean",
+      "label": "重发原文内容",
+      "description": "关闭后只提示「有人撤回了一条消息」，不重发具体文字/图片。"
+    },
+    "includeImages": {
+      "type": "boolean",
+      "label": "重发图片/表情",
+      "description": "开启后，被撤回的图片、表情会一并重发。关闭则图片段替换为 [图片] 占位（图片可能因协议端缓存被清而失效）。"
+    },
+    "atOperator": {
+      "type": "boolean",
+      "label": "重发时 @ 撤回者",
+      "description": "开启后，重发内容会 @ 执行撤回的人（仅群消息有效）。"
+    },
+    "prefix": {
+      "type": "string",
+      "label": "前缀文案",
+      "description": "重发消息开头显示的文字，用于一眼识别这是防撤回内容。"
+    },
+    "cacheTTLMin": {
+      "type": "number",
+      "label": "缓存存活(分钟)",
+      "description": "每条收到的消息在内存里保留多久用于防撤回还原。超时后只能靠 get_msg 回查（可能已无法恢复）。"
+    },
+    "cooldownSec": {
+      "type": "number",
+      "label": "重发冷却(秒)",
+      "description": "同一会话两次防撤回重发之间的最小间隔，防止被刷屏触发。"
+    }
+  }
+}

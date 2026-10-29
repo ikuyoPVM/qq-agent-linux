@@ -1,0 +1,256 @@
+{
+  "id": "handoff",
+  "name": "双机接力（托管交接）",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "让服务端和本地两台 QQ Agent 共用同一个 bot：本地接管前先让服务端下线并同步记忆/插件/技能/配置，本地下线时把数据回传、服务端自动上线。传输用共享密钥 + AES-256-GCM 加密，RSA-2048 负责签名与回程加封。需在服务器打开 QQ 自动登录；同一个 QQ 号不能两端同时在线，交接期间需要让出一端的登录位。",
+  "author": "QQ Agent",
+  "entry": "index.js",
+  "enabledByDefault": false,
+  "permissions": [
+    "web_fetch"
+  ],
+  "capabilities": [],
+  "requires": [],
+  "settings": {
+    "role": "off",
+    "secret": "",
+    "rsaPublicKey": "",
+    "rsaPrivateKey": "",
+    "listenHost": "0.0.0.0",
+    "listenPort": 18190,
+    "localPort": 18191,
+    "allowIps": "",
+    "peerHost": "",
+    "peerPort": 18190,
+    "ackTimeoutMin": 10,
+    "probeTimeoutSec": 10,
+    "requestTimeoutSec": 300,
+    "transferTimeoutSec": 1800,
+    "onlineTimeoutSec": 300,
+    "bundleMaxMB": 256,
+    "syncSessions": true,
+    "syncApiKeys": false,
+    "accountMode": "single",
+    "autoInjectSnowluma": true,
+    "injectWhitelist": "",
+    "injectBlacklist": "",
+    "snowlumaPassword": "",
+    "pluginsExclude": "",
+    "skillsExclude": "",
+    "configKeepLocal": "",
+    "autoTakeoverOnStart": false,
+    "allowToolTrigger": false,
+    "relaunchAfterApply": true,
+    "machineName": ""
+  },
+  "configSchema": {
+    "role": {
+      "type": "select",
+      "group": "角色",
+      "label": "本机角色",
+      "options": [
+        {
+          "value": "off",
+          "label": "关闭（不监听、不联网）"
+        },
+        {
+          "value": "server",
+          "label": "服务端（被动接受交接）"
+        },
+        {
+          "value": "client",
+          "label": "本地电脑（主动接管/交还）"
+        }
+      ],
+      "description": "服务端只开监听、等本地发请求；本地只做发起方，不开公网端口。两台机器必须一端 server、另一端 client。"
+    },
+    "secret": {
+      "type": "string",
+      "group": "密钥与加密",
+      "label": "共享密钥",
+      "description": "两端必须填同一串（建议 48 位随机 base64）。所有请求都要带它；它同时经 HKDF 派生 AES-256-GCM 的对称密钥。生成：openssl rand -base64 48"
+    },
+    "rsaPublicKey": {
+      "type": "string",
+      "multiline": true,
+      "group": "密钥与加密",
+      "label": "RSA 公钥（PEM）",
+      "description": "服务端填：本地电脑那对 RSA 密钥的公钥。用途：① 验证本地请求的 RSA-PSS 签名；② 给回传数据用 RSA-OAEP 加封会话密钥。"
+    },
+    "rsaPrivateKey": {
+      "type": "string",
+      "multiline": true,
+      "group": "密钥与加密",
+      "label": "RSA 私钥（PEM）",
+      "description": "本地电脑填：与服务端公钥配对的私钥。它只在本机使用，不要发给任何人。生成：openssl genrsa -out client_priv.pem 2048 然后 openssl rsa -in client_priv.pem -pubout"
+    },
+    "listenHost": {
+      "type": "string",
+      "group": "网络",
+      "label": "服务端监听地址",
+      "description": "默认 0.0.0.0（公网可达）。只想走内网/VPN 时可填内网网卡地址。"
+    },
+    "listenPort": {
+      "type": "number",
+      "group": "网络",
+      "label": "服务端监听端口",
+      "description": "默认 18190。需要在服务端防火墙/安全组放行这个 TCP 端口。"
+    },
+    "localPort": {
+      "type": "number",
+      "group": "网络",
+      "label": "本地控制口端口",
+      "description": "默认 18191，只监听 127.0.0.1，给「本地接管.bat / 本地交还.bat」调用。"
+    },
+    "allowIps": {
+      "type": "string",
+      "group": "网络",
+      "label": "IP 白名单",
+      "description": "可选，逗号分隔。留空=不限制。强烈建议填你家宽带的公网出口 IP；IP 变动后要回来改。"
+    },
+    "peerHost": {
+      "type": "string",
+      "group": "网络",
+      "label": "服务端地址（本地端填）",
+      "description": "服务端的公网 IP 或域名。"
+    },
+    "peerPort": {
+      "type": "number",
+      "group": "网络",
+      "label": "服务端端口（本地端填）",
+      "description": "与服务端的「监听端口」一致，默认 18190。"
+    },
+    "ackTimeoutMin": {
+      "type": "number",
+      "group": "行为",
+      "label": "接管后等确认的分钟数",
+      "description": "服务端下线后，若这段时间内没收到本地「已接管」的确认，会自动恢复上线（看门狗）。默认 10 分钟。"
+    },
+    "probeTimeoutSec": {
+      "type": "number",
+      "group": "网络",
+      "label": "连通性探测超时（秒）",
+      "description": "点「测试服务端连通性」时等 TCP 握手的时间，默认 10 秒。网络慢可以调到 20。"
+    },
+    "requestTimeoutSec": {
+      "type": "number",
+      "group": "网络",
+      "label": "接管/交还请求超时（秒）",
+      "description": "服务端要先暂停、等排空、停 QQ、打包，所以给足时间。默认 300 秒。"
+    },
+    "transferTimeoutSec": {
+      "type": "number",
+      "group": "网络",
+      "label": "大包传输超时（秒）",
+      "description": "快照下载/回传的时限，默认 1800 秒（30 分钟）。"
+    },
+    "onlineTimeoutSec": {
+      "type": "number",
+      "group": "网络",
+      "label": "上线等待 OneBot 连接（秒）",
+      "description": "拉起 QQ/SnowLuma 后等 OneBot 连上的时间，默认 300 秒。"
+    },
+    "bundleMaxMB": {
+      "type": "number",
+      "group": "行为",
+      "label": "同步包大小上限（MB）",
+      "description": "默认 256。超出会直接拒绝并提示精简黑名单（比如不同步 sessions 或表情包）。"
+    },
+    "syncSessions": {
+      "type": "boolean",
+      "group": "同步范围",
+      "label": "同步会话留档（sessions）",
+      "description": "关掉可以明显减小包体积（目前 sessions 约占 12 MB），但「会话」页的历史记录不会跟过去。"
+    },
+    "syncApiKeys": {
+      "type": "boolean",
+      "group": "同步范围",
+      "label": "同步模型 API 配置",
+      "description": "默认不同步（两端可能用不同中转站/Key，同步会互相覆盖）。打开后 api/baseUrl/apiKey/model 也会一起同步。"
+    },
+    "accountMode": {
+      "type": "select",
+      "group": "行为",
+      "label": "账号模式",
+      "options": [
+        {
+          "value": "single",
+          "label": "单账号（同一个 QQ 号，交接时停/起 QQ）"
+        },
+        {
+          "value": "dual",
+          "label": "双账号（两端各用一个号，只切换谁回话）"
+        }
+      ],
+      "description": "单账号：交接必须停掉对端 QQ 让出登录位，可能需要扫码/点登录；双账号：两端都常驻，切换秒级、零登录风险，但群友看到的是两个号。"
+    },
+    "autoInjectSnowluma": {
+      "type": "boolean",
+      "group": "行为",
+      "label": "自动注入 SnowLuma",
+      "description": "上线时先打开 SnowLuma 的 hookAutoLoad（发现 QQ 就注入），失败再用 WebUI 接口补一次注入。关掉就得手动去控制台点注入。"
+    },
+    "injectWhitelist": {
+      "type": "string",
+      "group": "行为",
+      "label": "只注入这些 QQ 号（白名单）",
+      "description": "逗号或空格分隔。留空 = 不限制。填了后只注入名单里的号，会关闭 SnowLuma 的全局自动注入。"
+    },
+    "injectBlacklist": {
+      "type": "string",
+      "group": "行为",
+      "label": "不要注入这些 QQ 号（黑名单）",
+      "description": "逗号或空格分隔。优先级高于白名单。"
+    },
+    "snowlumaPassword": {
+      "type": "string",
+      "group": "行为",
+      "label": "SnowLuma WebUI 密码",
+      "description": "后备注入用：登录 SnowLuma WebUI（127.0.0.1:5099）→ 调 /api/processes/:pid/load。留空则只用 hookAutoLoad。"
+    },
+    "pluginsExclude": {
+      "type": "string",
+      "group": "同步范围",
+      "label": "插件黑名单",
+      "description": "逗号分隔的插件 id，例如：voice-hub,her-life。本插件 handoff 永远不同步。"
+    },
+    "skillsExclude": {
+      "type": "string",
+      "group": "同步范围",
+      "label": "技能黑名单",
+      "description": "逗号分隔的技能 id，例如：mcmod-search。"
+    },
+    "configKeepLocal": {
+      "type": "string",
+      "group": "同步范围",
+      "label": "额外保留给本机的配置键",
+      "description": "默认已保留 server、snowluma、skills.handoff、skills.voice-hub、api。需要再追加时写点号路径，逗号分隔，例如：skills.bili-browse.proxy"
+    },
+    "autoTakeoverOnStart": {
+      "type": "boolean",
+      "group": "行为",
+      "label": "本地启动即接管",
+      "description": "本地端打开 QQ Agent 后自动向服务端发起接管。适合把本地当主力的情况；默认关，避免误触发。"
+    },
+    "allowToolTrigger": {
+      "type": "boolean",
+      "group": "行为",
+      "label": "允许模型触发交接",
+      "description": "打开后模型可以调 handoff__takeover / handoff__return。默认关，交接只由 .bat 或控制台手动触发，防止误切。"
+    },
+    "relaunchAfterApply": {
+      "type": "boolean",
+      "group": "行为",
+      "label": "落盘后自动重启",
+      "description": "默认开。store/memory 有内存缓存，必须重启进程才能读到新数据；关掉的话数据虽然落盘了，但需要你手动重启才生效。"
+    },
+    "machineName": {
+      "type": "string",
+      "group": "行为",
+      "label": "本机名称",
+      "description": "留空=用系统主机名。同步包和日志里会带这个名字，方便区分两台机器。"
+    }
+  }
+}

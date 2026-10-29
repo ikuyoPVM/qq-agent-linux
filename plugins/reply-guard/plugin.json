@@ -1,0 +1,86 @@
+{
+  "id": "reply-guard",
+  "name": "发言守卫",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "在她说的话发出去之前做一道**代码级**检查：命中已知的坏习惯（解说自己的打字过程、一晚反复催睡、每条都差不多长、比喻、硬语气、看图说话）就当场打回，并把原因交回给她，让她换一种说法。同时提供「本批交付完毕就提前收尾」策略——省掉每次运行里那一轮多余的 LLM 调用（实测每轮重发约 22k token）。",
+  "author": "小肥鱼",
+  "entry": "index.js",
+  "enabledByDefault": true,
+  "capabilities": [
+    "before-tool",
+    "reply.local-policy"
+  ],
+  "requires": [],
+  "settings": {
+    "enabled": true,
+    "localPolicy": true,
+    "guardNarrating": true,
+    "guardNagging": true,
+    "guardEvenLength": true,
+    "guardMetaphor": true,
+    "guardHardTone": true,
+    "guardImageDesc": true,
+    "nagMaxPerNight": 1,
+    "dryRun": false,
+    "guardClicheTone": true
+  },
+  "configSchema": {
+    "enabled": {
+      "type": "boolean",
+      "label": "启用发言守卫",
+      "description": "关掉后不再拦截任何发言，行为与没有这个插件时一致。"
+    },
+    "localPolicy": {
+      "type": "boolean",
+      "label": "提前收尾省 token",
+      "description": "一批里话已经发出去、且没有遗留动作（没有失败、没有'我去看看'这类预告）时，直接结束本次运行，不再多跑一轮。实测每次运行省一轮 ≈ 22k token。关掉就回到'每轮都跑完'的旧行为。"
+    },
+    "guardEvenLength": {
+      "type": "boolean",
+      "label": "拦截「每条都差不多长」",
+      "description": "多条回复里最短的也有十几个字（等于每条都写得一样长）时打回，让她改成长短交错。真人是一句长一句短、还会有几个字的碎片。"
+    },
+    "guardMetaphor": {
+      "type": "boolean",
+      "label": "拦截「比喻/书面形容」",
+      "description": "「跟…似的」「仿佛」「宛如」「如同」这类打比方/书面形容，命中就打回，改成大白话直接说。"
+    },
+    "guardHardTone": {
+      "type": "boolean",
+      "label": "拦截「硬语气」",
+      "description": "「归我了」「你别得意」「你少来」「你还好意思」「我要当真了」这类站在他对面压他/挑毛病的话，命中就打回。"
+    },
+    "guardImageDesc": {
+      "type": "boolean",
+      "label": "拦截「看图说话」",
+      "description": "「构图」「图里」「中间那个」「左上」这类逐项描述图片内容的话，命中就打回——他发图是找你，不是让你交图片描述。"
+    },
+    "guardNarrating": {
+      "type": "boolean",
+      "label": "拦截「解说自己的打字过程」",
+      "description": "比如「我打了一半又删了」「台词才写一半」「看了好几秒才敢打字」——这类把自己的动作念出来的话会被打回。"
+    },
+    "guardNagging": {
+      "type": "boolean",
+      "label": "拦截「一晚反复催睡」",
+      "description": "「睡吧」「该睡了」「几点了」「先到这儿」这类话，一晚超过上限就把多余的打回。"
+    },
+    "nagMaxPerNight": {
+      "type": "number",
+      "label": "一晚允许催睡几次",
+      "description": "默认 1 次。超过这个次数的催睡会被打回。"
+    },
+    "dryRun": {
+      "type": "boolean",
+      "label": "只记录不拦截（观察模式）",
+      "description": "打开后只往日志里写「本来会拦下什么」，不真的阻止发言。想先看看会误伤多少时用。"
+    },
+    "guardClicheTone": {
+      "type": "boolean",
+      "label": "拦截「机器感口癖」",
+      "description": "「那你倒是说说」「那你说说看」「行吧行吧」「随你便」「你开心就好」「呵呵，…」这类把话踢回给对方/表面答应实际带刺的句式，命中就打回重说。"
+    }
+  }
+}

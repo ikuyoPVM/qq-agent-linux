@@ -1,0 +1,50 @@
+{
+  "id": "memory-backup",
+  "name": "记忆备份",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "把记忆数据（memory / memory-v2 / messages / 人设演化 / 语义卡片等）整份快照到 data/memory-backups/，支持立即备份、列清单、按快照还原、自动定期备份。还原前会自动先备份当前状态，还原错了还能退回去。",
+  "author": "QQ Agent 用户",
+  "enabledByDefault": true,
+  "capabilities": [],
+  "requires": [],
+  "settings": {
+    "autoBackup": true,
+    "autoIntervalHours": 24,
+    "retain": 10,
+    "includeSessions": false
+  },
+  "configSchema": {
+    "autoBackup": {
+      "type": "boolean",
+      "label": "自动备份",
+      "description": "默认开。插件加载后每隔一段时间自动做一次快照，只在距上次备份超过间隔时才真的动手。"
+    },
+    "autoIntervalHours": {
+      "type": "number",
+      "label": "自动备份间隔（小时）",
+      "description": "默认 24。填 0 等于关闭自动备份（手动工具仍然可用）。"
+    },
+    "retain": {
+      "type": "number",
+      "label": "保留份数",
+      "description": "默认 10。超出后自动删最旧的。记忆类数据一份约 2MB，10 份约 20MB。"
+    },
+    "includeSessions": {
+      "type": "boolean",
+      "label": "连会话记录一起备份",
+      "description": "默认关。data/sessions 是完整聊天记录，目前约 70MB，开了会让每份备份从 2MB 涨到 70MB 以上。只想保住「记忆」就别开。"
+    }
+  },
+  "prompt": {
+    "sections": [
+      {
+        "id": "memory-backup-note",
+        "title": "记忆备份",
+        "priority": 40,
+        "content": "用户说「备份一下记忆」「存个档」「备份存档」时，调用 memory-backup 的 backup 工具，不要自己用 shell 复制文件。用户问「备份过几次」「有哪些备份」就调 list。用户说「恢复到某个备份」「退回昨天的存档」就调 restore，并且**必须**在调用前跟用户确认一遍要恢复哪一份——恢复会覆盖当前记忆。工具返回的是结果，用你自己的话简短说明即可。"
+      }
+    ]
+  }
+}

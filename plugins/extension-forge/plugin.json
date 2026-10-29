@@ -1,0 +1,66 @@
+{
+  "id": "extension-forge",
+  "name": "扩展锻造台",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "utility",
+  "description": "让模型自己写插件 / 技能，也能读懂别人发来的扩展包：在暂存区起草或导入 zip → 过四道闸门（结构 / 危险模式 / 声明-实现一致 / 本地环境适配）→ 人工确认 → 落地到 skills/ 或 plugins/（热重载自动装载）。写盘全程限制在暂存区内，只有确认后的产物才会进入模块目录。导入第三方包时不直接安装，而是先解包到暂存区、由模型适配本机环境、把改动以 diff 呈现，再由用户决定。默认关闭：它会生成本机可执行的 JS，应当由用户显式开启。",
+  "author": "QQ Agent",
+  "enabledByDefault": false,
+  "capabilities": [
+    "forge.draft",
+    "forge.new-draft",
+    "forge.import-zip",
+    "forge.snapshot",
+    "forge.diff",
+    "forge.env",
+    "forge.gate",
+    "forge.install",
+    "forge.list",
+    "forge.discard",
+    "forge.read-draft",
+    "forge.save-meta",
+    "forge.load-meta",
+    "forge.installed",
+    "forge.upgrade-start",
+    "forge.compare-installed",
+    "forge.upgrade-install",
+    "forge.rollback"
+  ],
+  "requires": [],
+  "settings": {
+    "maxFiles": 20,
+    "maxFileBytes": 262144,
+    "maxTotalBytes": 1048576,
+    "allowNetwork": false,
+    "keepStaging": true
+  },
+  "configSchema": {
+    "maxFiles": {
+      "type": "number",
+      "label": "单个扩展最多文件数",
+      "description": "防止模型一口气生成几百个文件。默认 20 —— 一个正常技能只需 2-5 个。"
+    },
+    "maxFileBytes": {
+      "type": "number",
+      "label": "单文件字节上限",
+      "description": "默认 256KB。超过几乎一定是模型跑偏了。"
+    },
+    "maxTotalBytes": {
+      "type": "number",
+      "label": "单次草稿总体积上限",
+      "description": "默认 1MB。"
+    },
+    "allowNetwork": {
+      "type": "boolean",
+      "label": "允许生成的代码联网",
+      "description": "关闭时，生成的代码里出现 fetch / http 会要求额外确认。开启则视为常规能力。"
+    },
+    "keepStaging": {
+      "type": "boolean",
+      "label": "保留已安装草稿的暂存副本",
+      "description": "保留便于回溯「这个东西当初是怎么生成出来的」。关闭则安装后删除暂存。"
+    }
+  },
+  "prompt": null
+}

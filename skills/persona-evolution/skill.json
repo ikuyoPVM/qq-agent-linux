@@ -1,0 +1,64 @@
+{
+  "id": "persona-evolution",
+  "name": "自主角色养成",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "model",
+  "description": "按机器人自己的名字去研究对应角色的性格，生成角色卡；把角色倾向与会话记忆结合成一段动态人格注入提示词，让发言有性格而不是死读人设；性格随交互缓慢演化，可用力度等级调整影响强度。名字有歧义时会让机器人先确认角色出处。",
+  "author": "local",
+  "enabledByDefault": true,
+  "capabilities": [],
+  "requires": [],
+  "permissions": ["web_fetch"],
+  "settings": {
+    "enabled": true,
+    "characterOverride": "",
+    "intensity": 5,
+    "evolveEvery": 40,
+    "evolveRate": 1,
+    "autoResearch": true,
+    "maxDrift": 35,
+    "resetAll": false
+  },  "configSchema": {
+    "enabled": {
+      "type": "boolean",
+      "label": "启用自主角色养成",
+      "description": "总开关。关掉后不再往提示词里注入人格片段，已有性格数据会保留（重新打开即恢复）。"
+    },
+    "characterOverride": {
+      "type": "string",
+      "label": "角色出处（可选）",
+      "description": "留空 = 只按机器人名字自动识别（名字是「沙耶哦」就去找「沙耶」）。重名多、或自动认错时，在这里手动指定出处，格式「角色名@作品名」，例如「沙耶@沙耶之歌」或「爱丽丝@爱丽丝梦游仙境」。填了就不再自动猜。"
+    },
+    "intensity": {
+      "type": "number",
+      "label": "性格力度等级 0-10",
+      "description": "0 = 完全不注入（等于关闭）；3 = 轻微口癖倾向；5 = 默认，性格明显但仍是群友；8 = 强势主导，说话方式被角色带着走；10 = 最大，几乎完全按角色行事。数值越大注入的性格段落越长、要求越硬。改这一项会让该会话的系统提示前缀重建一次（正常现象）。"
+    },
+    "evolveEvery": {
+      "type": "number",
+      "label": "每多少轮演化一次",
+      "description": "默认 40。累计到这么多轮真实对话后，才做一次性格微调 —— 这是「慢慢变」而不是「瞬间变人设」的关键。调小变化更快（也更容易跑偏），调大更稳。范围 5~500。"
+    },
+    "evolveRate": {
+      "type": "number",
+      "label": "单次演化幅度 1-3",
+      "description": "默认 1。每轮演化每个性格维度最多挪动多少（内部单位 0-100）。1 = 细腻缓慢；2 = 明显；3 = 激进。配合「每多少轮演化一次」一起用。范围 1~3。"
+    },
+    "autoResearch": {
+      "type": "boolean",
+      "label": "允许联网研究角色",
+      "description": "默认开。开着时用机器人自己的模型+联网去查角色设定；关掉则只用模型已有知识推断。角色冷门时开着明显更准。"
+    },
+    "maxDrift": {
+      "type": "number",
+      "label": "性格最大偏移 0-100",
+      "description": "默认 35。防止长期演化把人设彻底带跑：每个维度相对角色卡基准最多偏离这么多。0 = 不允许偏离（只按角色卡）；100 = 不设限。范围 0~100。"
+    },
+    "resetAll": {
+      "type": "boolean",
+      "label": "重置所有已学性格",
+      "description": "临时开关：打开并保存后，下次对话会把所有会话的性格状态清空、重新按角色卡开始（只清性格演化，不动聊天记忆）。重置完请把这一项关回去。"
+    }
+  }
+}

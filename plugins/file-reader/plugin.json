@@ -1,0 +1,113 @@
+{
+  "id": "file-reader",
+  "name": "文件阅读",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "media",
+  "description": "让机器人真正看到群友/私聊发来的文件：txt、md、代码、csv、json、Word（docx/doc）、PDF（含扫描件 OCR）、Excel（xlsx/xls）、PPT（pptx/ppt）、OpenDocument、RTF、HTML、压缩包清单。入站时自动下载并抽取正文，以「[文件 文件名] 内容（类型 · 大小 · 页数）：正文…」拼回那条消息；正文超长时先用 read_file 分页读。读不到（太大/加密/扫描件/协议端不给链接）会写明原因，不猜内容。注意：需核心支持 media.file-read 调用点（包内 CORE-PATCH.md，三处约 15 行），未接线时插件正常加载但收不到文件。",
+  "author": "YG",
+  "entry": "index.js",
+  "permissions": [],
+  "capabilities": [
+    "media.file-read"
+  ],
+  "enabledByDefault": true,
+  "settings": {
+    "enabled": true,
+    "maxMB": 20,
+    "maxChars": 20000,
+    "inlineChars": 1000,
+    "timeoutMs": 25000,
+    "toolChunkChars": 6000,
+    "keepFiles": 60,
+    "maxPerHour": 40,
+    "ocrEnabled": true,
+    "ocrPages": 2,
+    "ocrDpi": 150,
+    "ocrTimeoutMs": 40000
+  },
+  "configSchema": {
+    "enabled": {
+      "type": "boolean",
+      "label": "启用文件阅读",
+      "description": "总开关。关掉之后文件消息只保留「[文件 文件名]」占位符，行为与没装这个技能完全一致。",
+      "group": "总开关"
+    },
+    "maxMB": {
+      "type": "number",
+      "label": "单个文件体积上限（MB）",
+      "description": "超过这个大小的文件不下载、不解析，只在消息里写一句原因。默认 20 MB。PDF/PPT 这类文件解析很吃内存，不建议调到 50 以上。",
+      "group": "总开关"
+    },
+    "inlineChars": {
+      "type": "number",
+      "label": "消息里内联显示多少字",
+      "description": "直接拼进聊天记录的正文字数。默认 1000 字。调大能让模型一次看更多，但这段文字会随聊天历史反复进入提示词，很费 token，建议保持 800-1500。",
+      "group": "正文长度"
+    },
+    "maxChars": {
+      "type": "number",
+      "label": "全文最多保留多少字",
+      "description": "抽取后存下来的正文上限，read_file 也只能读到这么多。默认 20000 字，足够放下一份长报告；超出的部分会注明已截断。",
+      "group": "正文长度"
+    },
+    "toolChunkChars": {
+      "type": "number",
+      "label": "read_file 单次最多返回多少字",
+      "description": "模型分页读取时的单页上限，默认 6000 字。调小更省 token，调大能少调几次。",
+      "group": "正文长度"
+    },
+    "timeoutMs": {
+      "type": "number",
+      "label": "单个文件处理超时（毫秒）",
+      "description": "下载 + 解析的总预算，默认 25000。超时就放弃这条文件，消息里写「文件没能读取：下载超时」，不影响后面消息入库。",
+      "group": "稳定性"
+    },
+    "maxPerHour": {
+      "type": "number",
+      "label": "每小时最多读几个文件",
+      "description": "防止有人连发几十个大文件把机器读爆，默认 40 个/小时。超出的文件只留占位符并注明原因，下一个整点自动恢复。",
+      "group": "稳定性"
+    },
+    "keepFiles": {
+      "type": "number",
+      "label": "正文缓存保留多少个文件",
+      "description": "抽出来的全文存在 plugin-data/file-reader/cache 里，供 read_file 分页读取。默认保留最近 60 个，超出按时间淘汰最旧的。",
+      "group": "稳定性"
+    },
+    "ocrEnabled": {
+      "type": "boolean",
+      "label": "扫描件 OCR（PDF 没有可用文字层时识别图片）",
+      "description": "中文 PDF 里常见两类坑：纯扫描件没有文字层，或者文字层是 CID 字体乱码。打开后用 pdftoppm 渲染 + tesseract（chi_sim）识别。只有前几页，慢但聊胜于无；关掉则只报「没有可读文字」。",
+      "group": "扫描件 OCR"
+    },
+    "ocrPages": {
+      "type": "number",
+      "label": "OCR 最多识别前几页",
+      "description": "默认 2 页。OCR 是整条链路里最慢的一步（每页 1-4 秒），页数越多越容易把入站消息卡住。",
+      "group": "扫描件 OCR"
+    },
+    "ocrDpi": {
+      "type": "number",
+      "label": "OCR 渲染分辨率（DPI）",
+      "description": "默认 150。小字密集的试卷/合同可以调到 300，代价是更慢、更吃内存。",
+      "group": "扫描件 OCR"
+    },
+    "ocrTimeoutMs": {
+      "type": "number",
+      "label": "OCR 总时间预算（毫秒）",
+      "description": "默认 40000。用完就带着已识别的部分返回，并注明后面的页没识别——好过整条消息卡死。",
+      "group": "扫描件 OCR"
+    }
+  },
+  "prompt": {
+    "sections": [
+      {
+        "id": "file-reader",
+        "title": "文件阅读",
+        "priority": 55,
+        "content": "群友和私聊都可能直接发文件（txt / 代码 / csv / Word / PDF / Excel / PPT / 压缩包）。这类消息在记录里长这样：「[文件 报告.pdf] 内容（PDF · 2.3 MB · 12 页）：正文……」。冒号后面就是文件正文，你可以直接读它、总结它、按里面的要求做事，不需要让对方再发一遍文字版。\n· 末尾写「共 N 字，这里只显示前 M 字」= 只贴了开头。需要后面的内容就调用 read_file（file 传文件名，offset 传字符偏移），一次一页地读完为止。\n· 写「（文件没能读取：……）」或「（没有抽到可读文字……）」= 你确实没看到内容（可能是扫描件、加密、体积超限或协议端没给下载链接）。这时如实说明情况（比如请对方换成文字或截图），不要凭文件名猜里面写了什么，也不要假装读过。\n· 图片和语音不走这条路（分别由看图能力和语音转文字处理），read_file 里找不到它们。"
+      }
+    ]
+  }
+}
